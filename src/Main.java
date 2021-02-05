@@ -12,7 +12,7 @@ public class Main {
     public static char hidden = '#';
     public static char circle = 'O';
     public static char notCircle = 'X';
-    public static String outputPath = "out.tx";
+    public static String outputPath = "out.txt";
     public static void main(String[] args) {
         try {
             // Create a file named "out.txt" to record all data after running
@@ -49,7 +49,7 @@ public class Main {
             System.out.println("Output of Iterative method: ");
             printStream.println("Output of Iterative method: ");
             startTime = System.nanoTime();
-            IterativeUnHide(input, printStream);
+            iterativeUnHide(input, printStream);
             endTime = System.nanoTime();
             timesInSeconds = (endTime - startTime) / 1000000000.0;
             System.out.println("Running time of iterative method is "+timesInSeconds+" seconds.");
@@ -95,34 +95,40 @@ public class Main {
      * @param input generated row that we want to unhide
      * @param ps the stream that we want to write to the output file
      */
-    public static void IterativeUnHide(char[] input, PrintStream ps) {
-        ArrayList<String> possibleCases = new ArrayList<String>();
-        // Here, I create a temporary string to keep data of input before using input for the below loop
-        String originalInputString = new String(input);
-        char[] originalInput = input;
+    public static void iterativeUnHide(char[] input, PrintStream ps) {
+        char[] originalInput = input.clone();
         int numberOfHiddenCharacters = 0;
         // This is the number of # sign in the string input
         for(char character: input) {
             if (character == hidden) numberOfHiddenCharacters++;
         }
         int maximumPossibleCases = (int)(Math.pow(2, numberOfHiddenCharacters));
+        String[] possibleCases = new String[maximumPossibleCases];
+        int currentIndex = 0;
         do {
-            for (int i = 0; i < input.length; i++) {
-                if (input[i] == hidden) {
+            for (int i = 0; i < originalInput.length; i++) {
+                if (originalInput[i] == hidden) {
                     // Replace # by a random letter between X and O
-                    input[i] = generateRandomPossibleCharacter();
+                    originalInput[i] = generateRandomPossibleCharacter();
                 }
             }
-            // After the above loop, we have a completely new string from input
-            String unHiddenCharacters = new String(input);
-            if (!Arrays.asList(possibleCases).contains(unHiddenCharacters)) {
-                possibleCases.add(unHiddenCharacters);
+            String unHiddenCharacters = new String(originalInput);
+
+            boolean doesPossibleCasesContainThisCase = false;
+            for (int index = 0; index < currentIndex; index++) {
+                if (possibleCases[index].equals(unHiddenCharacters)) {
+                    doesPossibleCasesContainThisCase = true;
+                    break;
+                }
+            }
+            if (!doesPossibleCasesContainThisCase) {
+                possibleCases[currentIndex] = unHiddenCharacters;
                 System.out.println(unHiddenCharacters);
                 ps.println(unHiddenCharacters);
+                currentIndex = currentIndex+1;
             }
-            // Here I change input to be its original form, so that we can use input again.
-            input = originalInput;
-        } while (possibleCases.size() < maximumPossibleCases);
+            originalInput = input.clone();
+        } while (currentIndex < maximumPossibleCases);
     }
 
     /**
